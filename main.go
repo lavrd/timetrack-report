@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -88,11 +88,7 @@ func main() {
 	}
 
 	projects := report.Reports.Projects
-	fmt.Printf("%d %.f %.f %.2f %.2f\n", projects.TotalSeconds,
-		math.Floor(float64(projects.TotalSeconds)/60/60),
-		math.Floor(float64(projects.TotalSeconds)/60/60)*100,
-		float64(projects.TotalSeconds)/60/60,
-		float64(projects.TotalSeconds)/60/60*100)
+	fmt.Printf("%d\n", projects.TotalSeconds)
 	for _, data := range projects.Data {
 		fmt.Println(data.Label)
 		for _, date := range data.Dates {
@@ -138,7 +134,8 @@ func getAccessToken() (string, error) {
 	}()
 
 	if res.StatusCode != http.StatusCreated {
-		return "", errors.Errorf(`incorrect response status code: %d`, res.StatusCode)
+		buf, _ := ioutil.ReadAll(res.Body)
+		return "", errors.Errorf(`incorrect response status code: %d; body: %s`, res.StatusCode, string(buf))
 	}
 
 	resData := &TrackerSessionsResponse{}
